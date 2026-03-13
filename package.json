@@ -1,0 +1,35 @@
+{
+  "name": "c0",
+  "version": "0.1.0",
+  "description": "C0DATA — structured data using ASCII C0 control codes",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test dist/**/*.test.js",
+    "pretest": "tsc"
+  },
+  "keywords": [
+    "c0",
+    "c0data",
+    "data-format",
+    "control-codes",
+    "ascii"
+  ],
+  "author": "Thomas Sawyer",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^25.4.0",
+    "typescript": "^5.7.0"
+  }
+}
