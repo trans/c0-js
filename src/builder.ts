@@ -1,4 +1,5 @@
-import { SOH, STX, ETX, EOT, ENQ, DLE, SUB, FS, GS, RS, US } from './constants.js'
+import { SOH, STX, ETX, EOT, ENQ, DLE, ETB, SUB, FS, GS, RS, US } from './constants.js'
+import { C0Error } from './error.js'
 
 const encoder = new TextEncoder()
 
@@ -21,7 +22,7 @@ export class Builder {
   /** Write a file/database scope. */
   file(name: string, fn?: () => void): this {
     this.parts.push(FS)
-    this.pushStr(name)
+    this.pushName(name)
     fn?.()
     return this
   }
@@ -29,15 +30,28 @@ export class Builder {
   /** Write a group/table scope with optional headers. */
   group(name: string, headers?: string[] | null, fn?: () => void): this {
     this.parts.push(GS)
-    this.pushStr(name)
+    this.pushName(name)
     if (headers) {
       this.parts.push(SOH)
       for (let i = 0; i < headers.length; i++) {
         if (i > 0) this.parts.push(US)
-        this.pushStr(headers[i])
+        this.pushName(headers[i])
       }
     }
     fn?.()
+    return this
+  }
+
+  /**
+   * Write a standalone SOH header (e.g. for stream mode, where the
+   * header is appended and committed separately from the group).
+   */
+  header(names: string[]): this {
+    this.parts.push(SOH)
+    for (let i = 0; i < names.length; i++) {
+      if (i > 0) this.parts.push(US)
+      this.pushName(names[i])
+    }
     return this
   }
 
@@ -64,6 +78,25 @@ export class Builder {
   /** Write an EOT marker. */
   eot(): this {
     this.parts.push(EOT)
+    return this
+  }
+
+  /**
+   * Write an ETB commit marker (stream mode), with an optional
+   * integrity payload. The payload may not contain control bytes —
+   * it is terminated by the next control code on read.
+   */
+  etb(payload?: string): this {
+    this.parts.push(ETB)
+    if (payload !== undefined) {
+      const bytes = encoder.encode(payload)
+      for (let i = 0; i < bytes.length; i++) {
+        if (bytes[i] < 0x20) {
+          throw new C0Error('ETB payload may not contain control bytes')
+        }
+      }
+      this.parts.push(bytes)
+    }
     return this
   }
 
@@ -101,7 +134,7 @@ export class Builder {
   /** Write GS×N for document-mode depth. */
   section(name: string, depth: number = 1, fn?: () => void): this {
     for (let i = 0; i < depth; i++) this.parts.push(GS)
-    this.pushStr(name)
+    this.pushName(name)
     fn?.()
     return this
   }
@@ -143,6 +176,18 @@ export class Builder {
 
   private pushStr(s: string): void {
     this.parts.push(encoder.encode(s))
+  }
+
+  // Names (labels and headers) are identifiers, not values — control
+  // bytes are illegal in them (see DESIGN.md "Canonical Form").
+  private pushName(s: string): void {
+    const bytes = encoder.encode(s)
+    for (let i = 0; i < bytes.length; i++) {
+      if (bytes[i] < 0x20) {
+        throw new C0Error(`Names may not contain control bytes (got 0x${bytes[i].toString(16).padStart(2, '0')})`)
+      }
+    }
+    this.parts.push(bytes)
   }
 
   private pushEscaped(s: string): void {

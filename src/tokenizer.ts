@@ -1,4 +1,4 @@
-import { SOH, STX, ETX, EOT, ENQ, DLE, SUB, FS, GS, RS, US, ASSIGNED } from './constants.js'
+import { SOH, STX, ETX, EOT, ENQ, DLE, ETB, SUB, FS, GS, RS, US, ASSIGNED } from './constants.js'
 import { UnassignedCodeError, UnexpectedEndError } from './error.js'
 import { Token, TokenType } from './token.js'
 
@@ -8,6 +8,7 @@ const CONTROL_TO_TOKEN: Partial<Record<number, TokenType>> = {
   [ETX]: TokenType.ETX,
   [EOT]: TokenType.EOT,
   [ENQ]: TokenType.ENQ,
+  [ETB]: TokenType.ETB,
   [SUB]: TokenType.SUB,
   [FS]:  TokenType.FS,
   [GS]:  TokenType.GS,

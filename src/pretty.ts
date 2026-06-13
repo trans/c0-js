@@ -1,4 +1,4 @@
-import { SOH, STX, ETX, EOT, ENQ, DLE, SUB, FS, GS, RS, US } from './constants.js'
+import { SOH, STX, ETX, EOT, ENQ, DLE, ETB, SUB, FS, GS, RS, US } from './constants.js'
 
 const encoder = new TextEncoder()
 const decoder = new TextDecoder()
@@ -144,6 +144,17 @@ function formatCompact(buf: Uint8Array, indent: string): string {
           pos++
           break
 
+        case ETB:
+          // Commit marker not attached to a record line (e.g. after a
+          // group-name line). Indented on its own line with any payload.
+          if (lineStart) writeIndent(parts, indent, depth + 1)
+          parts.push(glyph(byte))
+          pos++
+          pos = writeDataUntilControl(buf, pos, parts)
+          parts.push('\n')
+          lineStart = true
+          break
+
         default:
           parts.push(glyph(byte))
           pos++
@@ -275,6 +286,14 @@ function writeFieldsLine(buf: Uint8Array, pos: number, parts: string[]): number 
     } else if (byte === ENQ) {
       parts.push(glyph(ENQ))
       pos++
+    } else if (byte === ETB) {
+      // Commit marker stays on the record's line, with any payload
+      parts.push(glyph(ETB))
+      pos++
+      while (pos < len && buf[pos] >= 0x20) {
+        parts.push(String.fromCharCode(buf[pos]))
+        pos++
+      }
     } else if (byte === STX) {
       parts.push(glyph(STX))
       pos++

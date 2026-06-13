@@ -1,4 +1,5 @@
-import { SOH, STX, ETX, EOT, DLE, FS, GS, RS, US } from './constants.js'
+import { SOH, STX, ETX, EOT, DLE, ETB, FS, GS, RS, US } from './constants.js'
+import { unescape } from './canonical.js'
 
 /**
  * Zero-copy accessor for a single record within a table.
@@ -68,6 +69,23 @@ export class Record {
     const result: Uint8Array[] = []
     for (let i = 0; i < this.fieldCount; i++) {
       result.push(this.field(i))
+    }
+    return result
+  }
+
+  /**
+   * Logical bytes of field n: the raw slice with DLE escapes decoded.
+   * Zero-copy when the field contains no escapes.
+   */
+  value(n: number): Uint8Array {
+    return unescape(this.field(n))
+  }
+
+  /** All logical field values. */
+  get values(): Uint8Array[] {
+    const result: Uint8Array[] = []
+    for (let i = 0; i < this.fieldCount; i++) {
+      result.push(this.value(i))
     }
     return result
   }
@@ -151,6 +169,12 @@ export class Table {
       this._nameEnd = pos
     }
 
+    // Skip ETB commit markers and their payloads (stream mode framing)
+    while (pos < len && this.buf[pos] === ETB) {
+      pos++
+      while (pos < len && this.buf[pos] >= 0x20) pos++
+    }
+
     // Read SOH header if present
     if (pos < len && this.buf[pos] === SOH) {
       pos++
@@ -183,7 +207,7 @@ export class Table {
         const recStart = pos
         while (pos < len) {
           const b = this.buf[pos]
-          if (b === RS || b === GS || b === FS || b === EOT || b === ETX) break
+          if (b === RS || b === GS || b === FS || b === EOT || b === ETX || b === ETB) break
           if (b === DLE) {
             pos += 2
           } else if (b === STX) {

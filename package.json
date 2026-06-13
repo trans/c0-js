@@ -1,6 +1,6 @@
 {
   "name": "c0",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "C0DATA — structured data using ASCII C0 control codes",
   "type": "module",
   "main": "./dist/index.js",
@@ -16,7 +16,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "node --test dist/**/*.test.js",
+    "test": "node --test 'dist/*.test.js' dist/test.js",
     "pretest": "tsc"
   },
   "keywords": [

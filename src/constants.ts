@@ -6,6 +6,7 @@ export const ETX = 0x03 // Close nested sub-structure / reference scope
 export const EOT = 0x04 // End of document / message
 export const ENQ = 0x05 // Reference (enquiry — look up named data)
 export const DLE = 0x10 // Escape (next byte is literal)
+export const ETB = 0x17 // Commit marker (stream mode block terminator)
 export const SUB = 0x1a // Substitution (old → new, C0-DIFF)
 export const FS  = 0x1c // File / Database separator
 export const GS  = 0x1d // Group / Table / Section separator
@@ -14,5 +15,5 @@ export const US  = 0x1f // Unit / Field separator
 
 /** Set of assigned control code bytes. */
 export const ASSIGNED: ReadonlySet<number> = new Set([
-  SOH, STX, ETX, EOT, ENQ, DLE, SUB, FS, GS, RS, US,
+  SOH, STX, ETX, EOT, ENQ, DLE, ETB, SUB, FS, GS, RS, US,
 ])

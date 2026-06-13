@@ -11,6 +11,7 @@ export const enum TokenType {
   GS  = 9,
   RS  = 10,
   US  = 11,
+  ETB = 12,  // commit marker (stream mode)
 }
 
 export interface Token {
