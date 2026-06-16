@@ -1,7 +1,7 @@
 {
   "name": "c0",
   "version": "0.2.0",
-  "description": "C0DATA — structured data using ASCII C0 control codes",
+  "description": "C0DATA \u2014 structured data using ASCII C0 control codes",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -17,7 +17,8 @@
   "scripts": {
     "build": "tsc",
     "test": "node --test 'dist/*.test.js' dist/test.js",
-    "pretest": "tsc"
+    "pretest": "tsc",
+    "docs": "typedoc"
   },
   "keywords": [
     "c0",
@@ -30,6 +31,7 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^25.4.0",
+    "typedoc": "^0.28.19",
     "typescript": "^5.7.0"
   }
 }
